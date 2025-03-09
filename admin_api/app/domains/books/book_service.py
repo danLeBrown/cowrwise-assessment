@@ -1,6 +1,6 @@
 from app.domains.books.book_repo import BookRepo
 from app.domains.books.borrowed_book_repo import BorrowedBookRepo
-from app.domains.books.book_schema import CreateBook, BorrowBook
+from app.domains.books.book_schema import CreateBookSchema, BorrowBookSchema
 from app.domains.books.book_models import Book
 from fastapi import HTTPException
 from app.domains.books.string import slugify
@@ -10,12 +10,19 @@ class BookService:
         self.book_repo = book_repo
         self.borrowed_book_repo = borrowed_book_repo
 
-    def create(self, book: CreateBook) -> Book:
-        book = Book(title=book.title, author=book.author, category=book.category, slug=slugify(book.title))
+    def create(self, book: CreateBookSchema) -> Book:
+        slug = slugify(book.title)
+        
+        book_exists = self.book_repo.find_by_slug(slug)
+        
+        if book_exists:
+            raise HTTPException(status_code=400, detail="Book already exists")
+        
+        book = Book(title=book.title, author=book.author, category=book.category, slug=slug, status='available')
         return self.book_repo.create(book)
     
-    def borrow(self, borrow: BorrowBook) -> Book:
-        book = self.book_repo.findById(borrow.book_id)
+    def borrow(self, borrow: BorrowBookSchema) -> Book:
+        book = self.book_repo.find_by_id(borrow.book_id)
         
         if not book:
             raise HTTPException(status_code=404, detail="Book not found")
@@ -28,6 +35,20 @@ class BookService:
         if book_is_borrowed:
             raise HTTPException(status_code=400, detail="Book is already borrowed")
         
-        return self.borrowed_book_repo.create(BorrowBook(book_id=book.id, user_id=borrow.user_id))
-        
+        return self.borrowed_book_repo.create(BorrowBookSchema(book_id=book.id, user_id=borrow.user_id))
+    
+    def borrowed_books(self) -> list[BorrowBookSchema]:
+        return self.borrowed_book_repo.find_all()
+    
+    def update_status(self, book_id: str, status: str) -> Book:
+        book = self.book_repo.find_by_id(book_id)
+
+        if not book:
+            raise HTTPException(status_code=404, detail="Book not found")
+
+        book.status = status
+        return self.book_repo.update(book)
+
+    def find_all(self) -> list[Book]:
+        return self.book_repo.find_all()
         

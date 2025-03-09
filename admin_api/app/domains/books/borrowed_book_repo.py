@@ -11,3 +11,9 @@ class BorrowedBookRepo:
         self.db.commit()
         self.db.refresh(borrowed_book)
         return borrowed_book
+    
+    def find_all(self) -> list[BorrowedBook]:
+        return self.db.query(BorrowedBook).all()
+    
+    def find_by_book_id(self, book_id: str) -> BorrowedBook:
+        return self.db.query(BorrowedBook).filter(BorrowedBook.book_id == book_id).first()
