@@ -1,19 +1,6 @@
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from app.core.database import Base
 from app.domains.users.user_models import User
 from app.domains.users.user_repo import UserRepo
-
-# Fixture for database session
-@pytest.fixture
-def db_session():
-    engine = create_engine("sqlite:///:memory:")  # Use an in-memory SQLite database for testing
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    yield session
-    session.close()
 
 # Fixture for UserRepo
 @pytest.fixture

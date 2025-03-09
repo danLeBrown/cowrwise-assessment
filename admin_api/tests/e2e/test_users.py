@@ -1,17 +1,3 @@
-import pytest
-from fastapi.testclient import TestClient
-from app.main import app
-from app.core.database import Base, engine
-
-# Fixture for the FastAPI test client
-@pytest.fixture
-def client():
-    # Create the database tables
-    Base.metadata.create_all(bind=engine)
-    yield TestClient(app)
-    # Drop the database tables after the test
-    Base.metadata.drop_all(bind=engine)
-
 def test_create_user(client):
     response = client.post(
         "/users",
