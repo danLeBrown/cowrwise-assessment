@@ -11,8 +11,9 @@ from app.domains.books.book_schema import BorrowBookSchema, BookSchema, CreateBo
 from app.domains.books.book_service import BookService
 from app.domains.books.book_repo import BookRepo
 from app.domains.books.borrowed_book_repo import BorrowedBookRepo
+from app.shared.schema import UpdateSchema
 
-app = FastAPI(debug=True)
+app = FastAPI(debug=True, title="Admin  API", version="0.1.0")
 
 # Configure logging
 logging.basicConfig(
@@ -66,7 +67,9 @@ async def get_borrowed_books(db: Session = Depends(get_db)):
     return book_service.borrowed_books()
 
 # Remove a book from the catalogue.
-@app.put("/books/{book_id}/unavailable")
+@app.put("/books/{book_id}/unavailable", response_model=UpdateSchema)
 async def update_book_status(book_id: str, db: Session = Depends(get_db)):
     book_service = BookService(book_repo=BookRepo(db), borrowed_book_repo=BorrowedBookRepo(db))
-    return book_service.update_status(book_id, status="unavailable")
+    book_service.update_status(book_id, status="unavailable")
+    
+    return {"detail": "Book status updated successfully"}

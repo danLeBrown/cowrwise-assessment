@@ -12,3 +12,6 @@ class BaseSchema(BaseModel):
         if isinstance(value, datetime):
             return int(value.timestamp())
         return value
+    
+class UpdateSchema(BaseModel):
+    detail: str
