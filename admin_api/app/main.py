@@ -1,3 +1,4 @@
+import logging
 from fastapi import FastAPI, Depends
 from app.core.database import SessionLocal
 from sqlalchemy.orm import Session
@@ -7,7 +8,14 @@ from alembic import command
 from alembic.config import Config
 from app.domains.users.user_schema import User, CreateUser
 
-app = FastAPI()
+app = FastAPI(debug=True)
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,  # Set the logging level to DEBUG
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 def run_migrations():
     alembic_cfg = Config("alembic.ini")
