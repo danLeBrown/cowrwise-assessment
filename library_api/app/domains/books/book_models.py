@@ -31,8 +31,8 @@ class Book(Base):
     slug = Column(String, index=True, nullable=False)
     status = Column(String, index=True, nullable=False)
     author = Column(String, index=True, nullable=False)
-    publisher = Column(String, index=True, nullable=False)
     category = Column(String, index=True, nullable=False)
+    publisher = Column(String, index=True, nullable=False)
     last_borrowed_at = Column(DateTime, nullable=True)
     
     # Define a one-to-many relationship with BorrowedBook

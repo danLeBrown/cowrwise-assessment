@@ -1,6 +1,6 @@
 from app.domains.books.book_repo import BookRepo
 from app.domains.books.borrowed_book_repo import BorrowedBookRepo
-from app.domains.books.book_schema import CreateBookSchema, BorrowBookSchema
+from app.domains.books.book_schema import CreateBookSchema, BorrowBookSchema, QueryBookSchema
 from app.domains.books.book_models import Book
 from fastapi import HTTPException
 from app.domains.books.string import slugify
@@ -18,7 +18,7 @@ class BookService:
         if book_exists:
             raise HTTPException(status_code=400, detail="Book already exists")
         
-        book = Book(title=book.title, author=book.author, publisher=book.publisher, category=book.category, slug=slug, status='available')
+        book = Book(title=book.title, author=book.author, category=book.category, slug=slug, status='available')
         return self.book_repo.create(book)
     
     def borrow(self, borrow: BorrowBookSchema) -> Book:
@@ -49,6 +49,6 @@ class BookService:
         book.status = status
         return self.book_repo.update(book)
 
-    def find_all(self) -> list[Book]:
-        return self.book_repo.find_all()
+    def find_all(self, query: QueryBookSchema) -> list[Book]:
+        return self.book_repo.db.query(Book).filter(Book.category == query.category, Book.publisher == query.publisher).all()
         

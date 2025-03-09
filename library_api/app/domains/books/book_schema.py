@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from app.shared.schema import BaseSchema
-from typing import ForwardRef
+from typing import ForwardRef, Optional
 
 # Forward reference to UserSchema
 UserSchema = ForwardRef("UserSchema")
@@ -9,14 +9,12 @@ class BookSchema(BaseSchema):
     title: str
     slug: str
     author: str
-    publisher: str
     category: str
 
 class CreateBookSchema(BaseModel):
     title: str
     author: str
     category: str
-    publisher: str
 
 class BorrowBookSchema(BaseSchema):
     book_id: str
@@ -27,7 +25,11 @@ class BorrowBookSchema(BaseSchema):
 
     class ConfigDict:
         from_attributes = True  # Enable ORM mode
-        
+
+class QueryBookSchema(BaseModel):
+    category: Optional[str] = None
+    publisher: Optional[str] = None
+
 # Resolve the forward reference at the end of the file
 from app.domains.users.user_schema import UserSchema
 BookSchema.model_rebuild()

@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: df25f45c6138
+Revision ID: d7c04844f93a
 Revises: 
-Create Date: 2025-03-09 23:19:30.902834
+Create Date: 2025-03-10 00:27:45.557156
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'df25f45c6138'
+revision: str = 'd7c04844f93a'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -29,6 +29,7 @@ def upgrade() -> None:
     sa.Column('slug', sa.String(), nullable=False),
     sa.Column('status', sa.String(), nullable=False),
     sa.Column('author', sa.String(), nullable=False),
+    sa.Column('publisher', sa.String(), nullable=False),
     sa.Column('category', sa.String(), nullable=False),
     sa.Column('last_borrowed_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
@@ -36,6 +37,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_books_author'), 'books', ['author'], unique=False)
     op.create_index(op.f('ix_books_category'), 'books', ['category'], unique=False)
     op.create_index(op.f('ix_books_id'), 'books', ['id'], unique=True)
+    op.create_index(op.f('ix_books_publisher'), 'books', ['publisher'], unique=False)
     op.create_index(op.f('ix_books_slug'), 'books', ['slug'], unique=False)
     op.create_index(op.f('ix_books_status'), 'books', ['status'], unique=False)
     op.create_index(op.f('ix_books_title'), 'books', ['title'], unique=False)
@@ -80,6 +82,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_books_title'), table_name='books')
     op.drop_index(op.f('ix_books_status'), table_name='books')
     op.drop_index(op.f('ix_books_slug'), table_name='books')
+    op.drop_index(op.f('ix_books_publisher'), table_name='books')
     op.drop_index(op.f('ix_books_id'), table_name='books')
     op.drop_index(op.f('ix_books_category'), table_name='books')
     op.drop_index(op.f('ix_books_author'), table_name='books')

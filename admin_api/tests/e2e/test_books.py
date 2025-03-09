@@ -1,7 +1,7 @@
 def test_create_book(client):
     response = client.post(
         "/books",
-        json={"title": "Angles & Demons", "author": "Dan Brown", "category": "Fiction"},
+        json={"title": "Angles & Demons", "author": "Dan Brown", "category": "Fiction", "publisher": "Penguin"},
     )
     assert response.status_code == 200
     assert response.json()["title"] == "Angles & Demons"
@@ -11,7 +11,7 @@ def test_get_books(client):
     # Create a book first
     client.post(
         "/books",
-        json={"title": "Angles & Demons", "author": "Dan Brown", "category": "Fiction"},
+        json={"title": "Angles & Demons", "author": "Dan Brown", "category": "Fiction", "publisher": "Penguin"},
     )
     # Get all books
     response = client.get("/books")
@@ -22,7 +22,7 @@ def test_update_book_as_unavailable(client):
     # Create a book first
     response = client.post(
         "/books",
-        json={"title": "Digital Fortress", "author": "Dan Brown", "category": "Fiction"},
+        json={"title": "Digital Fortress", "author": "Dan Brown", "category": "Fiction", "publisher": "Penguin"},
     )
     id = response.json()['id']
     response = client.put("books/%s/unavailable" % (id))
