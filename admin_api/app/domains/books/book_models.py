@@ -1,11 +1,19 @@
 from sqlalchemy import String, Column, Integer, UUID, ForeignKey, DateTime
 from sqlalchemy.sql import func
 from app.core.database import Base
+import uuid  # For generating UUIDs in Python
 
 class Book(Base):
     __tablename__ = "books"
     
-    id = Column(Integer, primary_key=True, index=True)
+        # Use UUID as the primary key
+    id = Column(
+        UUID(as_uuid=True),  # Use UUID type for PostgreSQL
+        primary_key=True,
+        default=uuid.uuid4,  # Automatically generate a UUID for new records
+        unique=True,
+        index=True,
+    )
     title = Column(String, index=True, nullable=False)
     slug = Column(String, index=True, nullable=False)
     author = Column(String, index=True, nullable=False)
@@ -26,9 +34,26 @@ class Book(Base):
 class BorrowedBook(Base):
     __tablename__ = "borrowed_books"
     
-    id = Column(Integer, primary_key=True, index=True)
-    book_id = Column(Integer, ForeignKey("books.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+        # Use UUID as the primary key
+    id = Column(
+        UUID(as_uuid=True),  # Use UUID type for PostgreSQL
+        primary_key=True,
+        default=uuid.uuid4,  # Automatically generate a UUID for new records
+        unique=True,
+        index=True,
+    )
+    # Foreign key to Book (UUID)
+    book_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("books.id"),
+        nullable=False,
+    )
+    # Foreign key to User (UUID)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id"),
+        nullable=False,
+    )
     returned_at = Column(DateTime, nullable=False)
     
     # Use DateTime for timestamps

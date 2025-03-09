@@ -28,11 +28,11 @@ def get_db():
 
 @app.get("/users", response_model=list[User])
 async def get_users(db: Session = Depends(get_db)):
-    user_service = UserService(user_repo=UserRepo(db))
+    user_service = UserService(UserRepo(db))
     return user_service.find_all()
 
 
 @app.post("/users", response_model=User)
 async def create_user(user: CreateUser, db: Session = Depends(get_db)):
-    user_service = UserService(user_repo=UserRepo(db))
+    user_service = UserService(UserRepo(db))
     return user_service.create(user)

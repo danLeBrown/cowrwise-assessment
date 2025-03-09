@@ -4,7 +4,7 @@ from app.domains.users.user_repo import UserRepo
 from app.domains.users.user_models import User
 
 class UserService:
-    def __init__(self, user_repo: UserRepo, ):
+    def __init__(self, user_repo: UserRepo):
         self.user_repo = user_repo
 
     def create(self, create: CreateUser) -> User:
