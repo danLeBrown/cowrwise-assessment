@@ -1,7 +1,7 @@
 from fastapi import HTTPException
-from app.domains.users.user_schema import CreateUserSchema
-from app.domains.users.user_repo import UserRepo
-from app.domains.users.user_models import User
+from shared.schemas.user_schema import CreateUserSchema
+from shared.repositories.user_repo import UserRepo
+from shared.models.user_models import User
 
 class UserService:
     def __init__(self, user_repo: UserRepo):

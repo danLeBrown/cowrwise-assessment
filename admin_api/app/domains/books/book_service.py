@@ -3,7 +3,7 @@ from shared.repositories.borrowed_book_repo import BorrowedBookRepo
 from shared.schemas.book_schema import CreateBookSchema, BorrowBookSchema
 from shared.models.book_models import Book
 from fastapi import HTTPException
-from app.domains.books.string import slugify
+from shared.utils.string import slugify
 
 class BookService:
     def __init__(self, book_repo: BookRepo, borrowed_book_repo: BorrowedBookRepo):

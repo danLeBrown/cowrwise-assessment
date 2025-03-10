@@ -2,7 +2,7 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
-from app.core.database import Base, engine, SessionLocal
+from shared.core.database import Base, engine, SessionLocal
 
 # Override the DB_URL for testing
 os.environ["DB_URL"] = "sqlite:///:memory:"

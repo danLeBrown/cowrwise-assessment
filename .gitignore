@@ -2,3 +2,4 @@
 *.env.test
 .venv
 *.pytest_cache
+*.pyc

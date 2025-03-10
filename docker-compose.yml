@@ -6,6 +6,8 @@ services:
     environment:
       DB_URL: postgresql://admin:password@admin_db:5432/admin_db
       PYTHONPATH: /app:/app/shared  # Add this line
+    volumes:
+      - ./shared:/app/shared  # Mount the shared folder
     depends_on:
       - admin_db
       - redis
@@ -17,6 +19,8 @@ services:
     environment:
       DB_URL: postgresql://frontend:password@frontend_db:5432/frontend_db
       PYTHONPATH: /app:/app/shared  # Add this line
+    volumes:
+      - ./shared:/app/shared  # Mount the shared folder
     depends_on:
       - frontend_db
       - redis

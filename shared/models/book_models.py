@@ -1,7 +1,7 @@
 from sqlalchemy import String, Column, UUID, ForeignKey, DateTime
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from app.core.database import Base
+from shared.core.database import Base
 from uuid import uuid4
 
 class Book(Base):
