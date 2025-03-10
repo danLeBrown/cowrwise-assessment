@@ -1,7 +1,7 @@
-from app.domains.books.book_repo import BookRepo
-from app.domains.books.borrowed_book_repo import BorrowedBookRepo
-from app.domains.books.book_schema import CreateBookSchema, BorrowBookSchema
-from app.domains.books.book_models import Book
+from shared.repositories.book_repo import BookRepo
+from shared.repositories.borrowed_book_repo import BorrowedBookRepo
+from shared.schemas.book_schema import CreateBookSchema, BorrowBookSchema
+from shared.models.book_models import Book
 from fastapi import HTTPException
 from app.domains.books.string import slugify
 

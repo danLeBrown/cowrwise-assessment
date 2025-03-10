@@ -1,17 +1,17 @@
 import logging
 from fastapi import FastAPI, Depends
-from app.core.database import SessionLocal
+from shared.core.database import SessionLocal
 from sqlalchemy.orm import Session
 from app.domains.users.user_service import UserService
-from app.domains.users.user_repo import UserRepo
+from shared.repositories.user_repo import UserRepo
 from alembic import command
 from alembic.config import Config
-from app.domains.users.user_schema import UserSchema, CreateUserSchema
-from app.domains.books.book_schema import BorrowBookSchema, BookSchema, CreateBookSchema
+from shared.schemas.user_schema import UserSchema, CreateUserSchema
+from shared.schemas.book_schema import BorrowBookSchema, BookSchema, CreateBookSchema
 from app.domains.books.book_service import BookService
-from app.domains.books.book_repo import BookRepo
-from app.domains.books.borrowed_book_repo import BorrowedBookRepo
-from app.shared.schema import UpdateSchema
+from shared.repositories.book_repo import BookRepo
+from shared.repositories.borrowed_book_repo import BorrowedBookRepo
+from shared.schemas.base_schema import UpdateSchema
 
 app = FastAPI(debug=True, title="Admin  API", version="0.1.0")
 

@@ -81,8 +81,8 @@ from logging.config import fileConfig
 from sqlalchemy import create_engine
 from alembic import context
 from app.core.database import Base  # Import your Base from database.py
-from app.domains.users.user_models import User  # Import your models
-from app.domains.books.book_models import Book  # Import your models
+from shared.models.user_models import User  # Import your models
+from shared.models.book_models import Book  # Import your models
 from dotenv import load_dotenv
 import os
 

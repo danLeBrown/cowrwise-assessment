@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from app.shared.schema import BaseSchema
+from shared.schemas.base_schema import BaseSchema
 from typing import ForwardRef, Optional
 
 # Forward reference to UserSchema

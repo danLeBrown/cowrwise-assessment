@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.domains.books.book_models import BorrowedBook
+from shared.models.book_models import BorrowedBook
 
 
 class BorrowedBookRepo:

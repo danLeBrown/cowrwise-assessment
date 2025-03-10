@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.domains.books.book_models import Book
+from shared.models.book_models import Book
 
 class BookRepo:
     def __init__(self, db: Session):

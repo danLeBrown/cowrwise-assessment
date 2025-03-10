@@ -1,0 +1,49 @@
+services:
+  admin_api:
+    build: ./admin_api
+    ports:
+      - "8000:8000"
+    environment:
+      DB_URL: postgresql://admin:password@admin_db:5432/admin_db
+      PYTHONPATH: /app:/app/shared  # Add this line
+    depends_on:
+      - admin_db
+      - redis
+
+  frontend_api:
+    build: ./frontend_api
+    ports:
+      - "8001:8001"
+    environment:
+      DB_URL: postgresql://frontend:password@frontend_db:5432/frontend_db
+      PYTHONPATH: /app:/app/shared  # Add this line
+    depends_on:
+      - frontend_db
+      - redis
+
+  admin_db:
+    image: postgres:13.3-alpine
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: admin_db
+    volumes:
+      - admin_db_data:/var/lib/postgresql/data
+
+  frontend_db:
+    image: postgres:13.3-alpine
+    environment:
+      POSTGRES_USER: frontend
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: frontend_db
+    volumes:
+      - frontend_db_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
+
+volumes:
+  admin_db_data:
+  frontend_db_data:

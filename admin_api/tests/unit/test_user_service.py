@@ -1,9 +1,9 @@
 import pytest
 from fastapi import HTTPException
 from app.domains.users.user_service import UserService
-from app.domains.users.user_repo import UserRepo
-from app.domains.users.user_models import User
-from app.domains.users.user_schema  import CreateUserSchema
+from shared.repositories.user_repo import UserRepo
+from shared.models.user_models import User
+from shared.schemas.user_schema  import CreateUserSchema
 
 # Fixture for UserRepo
 @pytest.fixture

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from app.shared.schema import BaseSchema
+from shared.schemas.base_schema import BaseSchema
 from typing import List, ForwardRef
 from pydantic import BaseModel
 
@@ -21,5 +21,5 @@ class CreateUserSchema(BaseModel):
     email: str
 
 # Resolve the forward reference at the end of the file
-from app.domains.books.book_schema import BookSchema
+from shared.schemas.book_schema import BookSchema
 UserSchema.model_rebuild()

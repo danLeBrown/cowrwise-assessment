@@ -3,7 +3,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from uuid import uuid4
 from sqlalchemy import String, Column
-from app.core.database import Base
+from shared.core.database import Base
 
 
 class User(Base):
