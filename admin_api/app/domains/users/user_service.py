@@ -2,9 +2,10 @@ from fastapi import HTTPException
 from shared.schemas.user_schema import CreateUserSchema
 from shared.repositories.user_repo import UserRepo
 from shared.models.user_models import User
-
+from redis import Redis
 class UserService:
-    def __init__(self, user_repo: UserRepo):
+    def __init__(self, redis_client: Redis, user_repo: UserRepo):
+        self.redis_client = redis_client
         self.user_repo = user_repo
 
     def create(self, create: CreateUserSchema) -> User:

@@ -17,3 +17,6 @@ class BorrowedBookRepo:
     
     def find_by_book_id(self, book_id: str) -> BorrowedBook:
         return self.db.query(BorrowedBook).filter(BorrowedBook.book_id == book_id).first()
+    
+    def find_by_user_id(self, user_id: str) -> BorrowedBook:
+        return self.db.query(BorrowedBook).filter(BorrowedBook.user_id == user_id).all()
