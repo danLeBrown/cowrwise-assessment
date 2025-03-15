@@ -5,11 +5,15 @@ services:
       - "8000:8000"
     environment:
       DB_URL: postgresql://admin:password@admin_db:5432/admin_db
+      FRONTEND_DB_URL: postgresql://frontend:password@frontend_db:5432/frontend_db
+      ADMIN_DB_URL: postgresql://admin:password@admin_db:5432/admin_db
       PYTHONPATH: /app:/app/shared  # Add this line
     volumes:
+      - ./admin_api:/app
       - ./shared:/app/shared  # Mount the shared folder
     depends_on:
       - admin_db
+      - frontend_db
       - redis
 
   frontend_api:
@@ -18,11 +22,15 @@ services:
       - "8001:8001"
     environment:
       DB_URL: postgresql://frontend:password@frontend_db:5432/frontend_db
+      FRONTEND_DB_URL: postgresql://frontend:password@frontend_db:5432/frontend_db
+      ADMIN_DB_URL: postgresql://admin:password@admin_db:5432/admin_db
       PYTHONPATH: /app:/app/shared  # Add this line
     volumes:
+      - ./frontend_api:/app
       - ./shared:/app/shared  # Mount the shared folder
     depends_on:
       - frontend_db
+      - admin_db
       - redis
 
   admin_db:

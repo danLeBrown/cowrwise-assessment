@@ -17,7 +17,7 @@ class UserService:
         
         user = self.user_repo.create(user=User(email=create.email, first_name=create.first_name, last_name=create.last_name))
         
-        # self.redis_client.publish(f"user.new", json.dumps(user))
+        self.redis_client.publish(f"user.created", str(user.id))
         
         return user
     

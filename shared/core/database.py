@@ -5,9 +5,15 @@ import os
 
 # Load environment variables from .env file
 load_dotenv()
-DB_URL = os.getenv("DB_URL")
+FRONTEND_DB_URL = os.getenv("FRONTEND_DB_URL")
 
-engine = create_engine(DB_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+fe_engine = create_engine(FRONTEND_DB_URL)
+FrontendSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=fe_engine)
+
+ADMIN_DB_URL = os.getenv("ADMIN_DB_URL")
+
+admin_engine = create_engine(ADMIN_DB_URL)
+AdminSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=admin_engine)
+
 
 Base = declarative_base()
