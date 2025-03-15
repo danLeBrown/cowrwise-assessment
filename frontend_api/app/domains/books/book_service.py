@@ -5,9 +5,9 @@ from shared.models.book_models import Book
 from fastapi import HTTPException
 from shared.utils.string import slugify
 from redis import Redis
-import json
+from shared.services.book_service import BaseBookService
 
-class BookService:
+class BookService(BaseBookService):
     def __init__(self, redis_client: Redis, book_repo: BookRepo, borrowed_book_repo: BorrowedBookRepo):
         self.redis_client = redis_client
         self.book_repo = book_repo
@@ -28,14 +28,8 @@ class BookService:
             raise HTTPException(status_code=400, detail="Book is already borrowed")
         
         borrowed_book =  self.borrowed_book_repo.create(BorrowBookSchema(book_id=book.id, user_id=borrow.user_id))
-        
-        # self.redis_client.publish("borrowed_book.new", json.dumps(borrowed_book))
-        
+                
         return borrowed_book
     
     def user_borrowed_books(self, user_id: str) -> list[BorrowBookSchema]:
         return self.borrowed_book_repo.find_by_user_id(user_id)    
-
-    def find_all(self, query: QueryBookSchema) -> list[Book]:
-        return self.book_repo.db.query(Book).filter(Book.category == query.category, Book.publisher == query.publisher).all()
-        

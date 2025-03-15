@@ -91,24 +91,24 @@ async def get_users(db: Session = Depends(get_db)):
 # Add new books to the catalogue
 @app.post("/books", response_model=BookSchema)
 async def create_book(book: CreateBookSchema, db: Session = Depends(get_db)):
-    book_service = BookService(book_repo=BookRepo(db), borrowed_book_repo=BorrowedBookRepo(db))
+    book_service = BookService(redis_client, book_repo=BookRepo(db), borrowed_book_repo=BorrowedBookRepo(db))
     return book_service.create(book)
 
 @app.get("/books", response_model=list[BookSchema])
 async def get_books(db: Session = Depends(get_db)):
-    book_service = BookService(book_repo=BookRepo(db), borrowed_book_repo=BorrowedBookRepo(db))
+    book_service = BookService(redis_client,book_repo=BookRepo(db), borrowed_book_repo=BorrowedBookRepo(db))
     return book_service.find_all()
 
 # Fetch/List users and the books they have borrowed
 @app.get("/books/borrowed", response_model=list[BorrowBookSchema])
 async def get_borrowed_books(db: Session = Depends(get_db)):
-    book_service = BookService(book_repo=BookRepo(db), borrowed_book_repo=BorrowedBookRepo(db))
+    book_service = BookService(redis_client, book_repo=BookRepo(db), borrowed_book_repo=BorrowedBookRepo(db))
     return book_service.borrowed_books()
 
 # Remove a book from the catalogue.
 @app.put("/books/{book_id}/unavailable", response_model=UpdateSchema)
 async def update_book_status(book_id: str, db: Session = Depends(get_db)):
-    book_service = BookService(book_repo=BookRepo(db), borrowed_book_repo=BorrowedBookRepo(db))
+    book_service = BookService(redis_client, book_repo=BookRepo(db), borrowed_book_repo=BorrowedBookRepo(db))
     book_service.update_status(book_id, status="unavailable")
     
     return {"detail": "Book status updated successfully"}

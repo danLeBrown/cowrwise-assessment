@@ -5,7 +5,6 @@ from shared.models.book_models import Book
 from fastapi import HTTPException
 from shared.utils.string import slugify
 from redis import Redis
-import json
 
 class BookService:
     def __init__(self, redis_client: Redis, book_repo: BookRepo, borrowed_book_repo: BorrowedBookRepo):
@@ -24,7 +23,7 @@ class BookService:
         book = Book(title=book.title, author=book.author, publisher=book.publisher, category=book.category, slug=slug, status='available')
         book = self.book_repo.create(book)
         
-        # self.redis_client.publish("book.new", json.dumps(book))
+        self.redis_client.publish("book.created", str(book.id))
         
         return book
         
