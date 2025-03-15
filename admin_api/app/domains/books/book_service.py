@@ -1,10 +1,12 @@
 from shared.repositories.book_repo import BookRepo
 from shared.repositories.borrowed_book_repo import BorrowedBookRepo
-from shared.schemas.book_schema import CreateBookSchema, BorrowBookSchema
-from shared.models.book_models import Book
+from shared.schemas.book_schema import CreateBookSchema, BorrowedBookSchema
+from shared.models.book_models import Book, BorrowedBook
+from shared.models.user_models import User
 from fastapi import HTTPException
 from shared.utils.string import slugify
 from redis import Redis
+from sqlalchemy.orm import joinedload, subqueryload
 
 class BookService:
     def __init__(self, redis_client: Redis, book_repo: BookRepo, borrowed_book_repo: BorrowedBookRepo):
@@ -28,7 +30,7 @@ class BookService:
         return book
         
     
-    # def borrow(self, borrow: BorrowBookSchema) -> Book:
+    # def borrow(self, borrow: BorrowedBookSchema) -> Book:
     #     book = self.book_repo.find_by_id(borrow.book_id)
         
     #     if not book:
@@ -42,10 +44,7 @@ class BookService:
     #     if book_is_borrowed:
     #         raise HTTPException(status_code=400, detail="Book is already borrowed")
         
-    #     return self.borrowed_book_repo.create(BorrowBookSchema(book_id=book.id, user_id=borrow.user_id))
-    
-    def borrowed_books(self) -> list[BorrowBookSchema]:
-        return self.borrowed_book_repo.find_all()
+    #     return self.borrowed_book_repo.create(BorrowedBookSchema(book_id=book.id, user_id=borrow.user_id))
     
     def update_status(self, book_id: str, status: str) -> Book:
         book = self.book_repo.find_by_id(book_id)
@@ -58,4 +57,7 @@ class BookService:
 
     def find_all(self) -> list[Book]:
         return self.book_repo.find_all()
+    
+    def find_borrowed_books(self) -> list[BorrowedBook]:
+        return self.borrowed_book_repo.find_all()
         

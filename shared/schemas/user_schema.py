@@ -1,19 +1,20 @@
 from pydantic import BaseModel
 from shared.schemas.base_schema import BaseSchema
-from typing import List, ForwardRef
+from typing import List, ForwardRef, Optional  # Add Optional here
 from pydantic import BaseModel
 
 # Forward reference to BookSchema
-BookSchema = ForwardRef("BookSchema")
-
+BorrowedBookSchemaWithoutUser = ForwardRef("BorrowedBookSchemaWithoutUser")
 class UserSchema(BaseSchema):
     email: str
     first_name: str
     last_name: str
-    borrowed_books: List[BookSchema] = []
 
     class ConfigDict:
         from_attributes = True  # Enable ORM mode
+        
+class UserBorrowedBooksSchema(UserSchema):
+    borrowed_books: Optional[List[BorrowedBookSchemaWithoutUser]] = []    
 
 class CreateUserSchema(BaseModel):
     first_name: str
@@ -21,5 +22,5 @@ class CreateUserSchema(BaseModel):
     email: str
 
 # Resolve the forward reference at the end of the file
-from shared.schemas.book_schema import BookSchema
+from shared.schemas.book_schema import BorrowedBookSchemaWithoutUser
 UserSchema.model_rebuild()

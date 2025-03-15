@@ -9,14 +9,15 @@ from app.domains.users.user_service import UserService
 from shared.repositories.user_repo import UserRepo
 from alembic import command
 from alembic.config import Config
-from shared.schemas.user_schema import UserSchema, CreateUserSchema
-from shared.schemas.book_schema import BorrowBookSchema, BookSchema, CreateBookSchema
+from shared.schemas.user_schema import UserSchema, UserBorrowedBooksSchema
+from shared.schemas.book_schema import BorrowedBookSchema, BookSchema, CreateBookSchema
 from app.domains.books.book_service import BookService
 from shared.repositories.book_repo import BookRepo
 from shared.repositories.borrowed_book_repo import BorrowedBookRepo
 from shared.schemas.base_schema import UpdateSchema
 from redis import Redis
 from app.domains.users.user_listener import create_user_listener
+from app.domains.books.book_listener import borrow_book_listener
 
 # Configure logging
 logging.basicConfig(
@@ -47,13 +48,24 @@ def run_user_listener(pubsub):
     frontend_db = FrontendSessionLocal()
     try:
         logger.info("Starting user listener thread")
-        create_user_listener(pubsub, admin_db, frontend_db)
+        create_user_listener(pubsub, admin_db=admin_db, frontend_db=frontend_db)
     except Exception as e:
         logger.error(f"Error in user listener thread: {e}")
     finally:
         admin_db.close()
         frontend_db.close()
 
+def run_book_listener(pubsub):
+    admin_db = AdminSessionLocal()
+    frontend_db = FrontendSessionLocal()
+    try:
+        logger.info("Starting book listener thread")
+        borrow_book_listener(pubsub, admin_db=admin_db, frontend_db=frontend_db)
+    except Exception as e:
+        logger.error(f"Error in book listener thread: {e}")
+    finally:
+        admin_db.close()
+        frontend_db.close()
 
 redis_client = Redis(host="redis", port=6379, db=0)
 
@@ -69,6 +81,11 @@ async def lifespan(app: FastAPI):
     listener_thread.start()
     logger.info("User listener thread started")
     
+    # Start the book listener in a separate thread
+    book_listener_thread = Thread(target=run_book_listener, args=[pubsub], daemon=True)
+    book_listener_thread.start()
+    logger.info("Book listener thread started")
+    
     yield
     
     # Cleanup logic (if needed)
@@ -77,16 +94,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(debug=True, title="Admin API", version="0.1.0", lifespan=lifespan)
 
-@app.post("/users", response_model=UserSchema)
-async def create_user(user: CreateUserSchema, db: Session = Depends(get_db)):
-    user_service = UserService(UserRepo(db))
-    return user_service.create(user)
-
 # Fetch / List users enrolled in the library.
 @app.get("/users", response_model=list[UserSchema])
 async def get_users(db: Session = Depends(get_db)):
     user_service = UserService(UserRepo(db))
     return user_service.find_all()
+
+# Fetch / List users enrolled in the library.
+@app.get("/users/borrowed-books", response_model=list[UserBorrowedBooksSchema])
+async def get_users(db: Session = Depends(get_db)):
+    user_service = UserService(UserRepo(db))
+    return user_service.find_all_with_borrowed_books()
 
 # Add new books to the catalogue
 @app.post("/books", response_model=BookSchema)
@@ -100,10 +118,10 @@ async def get_books(db: Session = Depends(get_db)):
     return book_service.find_all()
 
 # Fetch/List users and the books they have borrowed
-@app.get("/books/borrowed", response_model=list[BorrowBookSchema])
+@app.get("/books/borrowed", response_model=list[BorrowedBookSchema])
 async def get_borrowed_books(db: Session = Depends(get_db)):
     book_service = BookService(redis_client, book_repo=BookRepo(db), borrowed_book_repo=BorrowedBookRepo(db))
-    return book_service.borrowed_books()
+    return book_service.find_borrowed_books()
 
 # Remove a book from the catalogue.
 @app.put("/books/{book_id}/unavailable", response_model=UpdateSchema)
