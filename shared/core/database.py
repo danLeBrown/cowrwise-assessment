@@ -7,8 +7,10 @@ import os
 load_dotenv()
 FRONTEND_DB_URL = os.getenv("FRONTEND_DB_URL")
 
-fe_engine = create_engine(FRONTEND_DB_URL)
-FrontendSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=fe_engine)
+# print(os.getenv("DB_URL"), os.getenv("FRONTEND_DB_URL"), os.getenv("ADMIN_DB_URL"))
+
+frontend_engine = create_engine(FRONTEND_DB_URL)
+FrontendSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=frontend_engine)
 
 ADMIN_DB_URL = os.getenv("ADMIN_DB_URL")
 

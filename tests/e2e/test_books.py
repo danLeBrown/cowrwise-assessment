@@ -1,10 +1,16 @@
-def test_create_book(client):
-    response = client.post(
+def test_create_book(admin_client, frontend_client):
+    response = admin_client.post(
         "/books",
         json={"title": "Angles & Demons", "author": "Dan Brown", "category": "Fiction", "publisher": "Penguin"},
     )
     assert response.status_code == 200
     assert response.json()["title"] == "Angles & Demons"
+    
+    frontend_response = frontend_client.get(
+        "/books"
+    )
+    assert frontend_response.status_code == 200
+    assert len(frontend_response.json()) == 1
 
 
 def test_get_books(client):

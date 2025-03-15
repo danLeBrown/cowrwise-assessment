@@ -3,7 +3,7 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, BackgroundTasks
 from threading import Thread
-from shared.core.database import AdminSessionLocal, FrontendSessionLocal, admin_engine
+from shared.core.database import AdminSessionLocal, FrontendSessionLocal
 from sqlalchemy.orm import Session
 from app.domains.users.user_service import UserService
 from shared.repositories.user_repo import UserRepo
