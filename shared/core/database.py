@@ -10,19 +10,11 @@ load_dotenv()
 FRONTEND_DB_URL = os.getenv("FRONTEND_DB_URL", "sqlite:///./frontend.db")
 ADMIN_DB_URL = os.getenv("ADMIN_DB_URL", "sqlite:///./admin.db")
 
-# Allow overriding database engines for testing
-frontend_engine = None
-admin_engine = None
-
-def configure_engines(frontend_db_url=None, admin_db_url=None):
-    """Configure database engines. Used primarily for testing."""
-    global frontend_engine, admin_engine
-    frontend_engine = create_engine(frontend_db_url or FRONTEND_DB_URL)
-    admin_engine = create_engine(admin_db_url or ADMIN_DB_URL)
-
-# Initialize engines with default URLs if not in test mode
-if not os.getenv("TESTING"):
-    configure_engines()
+# def configure_engines(frontend_db_url=None, admin_db_url=None):
+#     """Configure database engines. Used primarily for testing."""
+#     global frontend_engine, admin_engine
+frontend_engine = create_engine(FRONTEND_DB_URL)
+admin_engine = create_engine(ADMIN_DB_URL)
 
 # Create session factories
 def get_frontend_session():

@@ -8,6 +8,6 @@ redis==5.2.1
 sqlalchemy==2.0.38
 psycopg2-binary==2.9.10
 alembic==1.15.1
-python-dotenv==1.0.
+python-dotenv==1.0.1
 
 # Service dependencies will be installed in editable mode (-e flag)

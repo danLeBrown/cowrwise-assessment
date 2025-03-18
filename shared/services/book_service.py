@@ -2,7 +2,7 @@ from shared.repositories.book_repo import BookRepo
 from shared.repositories.borrowed_book_repo import BorrowedBookRepo
 from shared.schemas.book_schema import CreateBookSchema, BorrowedBookSchema, QueryBookSchema, UpdateBookSchema
 from shared.models.book_models import Book
-from fastapi import HTTPException
+from fastapi import HTTPException, logger
 from shared.utils.redis_service import RedisService
 from shared.utils.string import slugify
 from redis import Redis
@@ -58,8 +58,9 @@ class BookService:
         book = self.book_repo.create(book)
         
         # use json
-        self.redis_client.client.publish("book.created", str(book.id))
-        
+        res = self.redis_client.client.publish("book.created", str(book.id))
+        print(f"Published book.created event with id: {book.id}, {res}")
+
         return book
         
     
