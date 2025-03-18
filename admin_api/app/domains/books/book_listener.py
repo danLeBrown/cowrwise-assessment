@@ -1,21 +1,24 @@
 from shared.repositories.borrowed_book_repo import BorrowedBookRepo
 from shared.models.book_models import BorrowedBook, Book
 from sqlalchemy.orm import Session, make_transient
-from redis import client
+from shared.utils.redis_service import RedisService
 import time
 import logging
 
 logger = logging.getLogger(__name__)
 
-def borrow_book_listener(pubsub: client.PubSub, admin_db: Session, frontend_db: Session):
+def borrow_book_listener(redis_client: RedisService, admin_db: Session, frontend_db: Session):
     logger.info("borrow_book_listener started")
+    pubsub = redis_client.client.pubsub()
     pubsub.subscribe("book.borrowed")
+
     frontend_repo = BorrowedBookRepo(frontend_db)
     admin_repo = BorrowedBookRepo(admin_db)
+
     try:
         while True:
             message = pubsub.get_message(ignore_subscribe_messages=True)
-            if message and message["channel"].decode("utf-8") == "book.borrowed":
+            if message and message["type"] == "message" and message["channel"].decode("utf-8") == "book.borrowed":
                 logger.info(f"Received message: {message}")
                 borrowed_book_id = message["data"].decode("utf-8")
 
@@ -46,4 +49,4 @@ def borrow_book_listener(pubsub: client.PubSub, admin_db: Session, frontend_db: 
             # Add a small delay to prevent CPU overuse
             time.sleep(0.1)
     except Exception as e:
-        logger.error(f"Error in user listener: {e}")
+        logger.error(f"Error in book listener: {e}")

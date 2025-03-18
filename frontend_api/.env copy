@@ -1,0 +1,4 @@
+DB_URL=postgresql://localhost:5432/cowrywise_admin_db3
+
+REDIS_HOST=redis
+REDIS_PORT=6379

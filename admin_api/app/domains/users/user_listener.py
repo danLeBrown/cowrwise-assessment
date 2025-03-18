@@ -1,31 +1,28 @@
 from shared.repositories.user_repo import UserRepo
 from shared.models.user_models import User
 from sqlalchemy.orm import Session, make_transient
-from redis import client
+from shared.utils.redis_service import RedisService
 import time
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
-def create_user_listener(pubsub: client.PubSub, admin_db: Session, frontend_db: Session):
+def create_user_listener(redis_client: RedisService, admin_db: Session, frontend_db: Session):
     logger.info("create_user_listener started")
+    pubsub = redis_client.client.pubsub() 
     pubsub.subscribe("user.created")
-    frontend_repo = UserRepo(frontend_db)
     admin_repo = UserRepo(admin_db)
-    
-    logger.info(f"frontend_repo: {frontend_repo}")
-    logger.info(f"admin_repo: {admin_repo}")
     
     try:
         while True:
             message = pubsub.get_message(ignore_subscribe_messages=True)
-            if message and message["channel"].decode("utf-8") == "user.created":
+            if message and message["type"] == "message" and message["channel"].decode("utf-8") == "user.created":
                 logger.info(f"Received message: {message}")
                 user_id = message["data"].decode("utf-8")
-                logger.info(f"User {user_id} created")
 
                 # Fetch the user from the frontend database and add it to the admin database            
-                user = frontend_repo.db.query(User).filter(User.id == user_id).first()
+                user = frontend_db.query(User).filter(User.id == user_id).first()
                 
                 if not user:
                     logger.warning(f"User {user_id} not found in frontend database")
@@ -33,7 +30,6 @@ def create_user_listener(pubsub: client.PubSub, admin_db: Session, frontend_db: 
                
                 logger.info(f"User {user_id} found in frontend database")
 
-                # Detach the user object from the frontend session
                 frontend_db.expunge(user)
                 make_transient(user)
 

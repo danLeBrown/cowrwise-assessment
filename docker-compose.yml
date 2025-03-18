@@ -7,10 +7,11 @@ services:
       DB_URL: postgresql://admin:password@admin_db:5432/admin_db
       FRONTEND_DB_URL: postgresql://frontend:password@frontend_db:5432/frontend_db
       ADMIN_DB_URL: postgresql://admin:password@admin_db:5432/admin_db
-      PYTHONPATH: /app:/app/shared  # Add this line
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     volumes:
-      - ./admin_api:/app
-      - ./shared:/app/shared  # Mount the shared folder
+      - ./admin_api:/admin_api
+      - ./shared:/admin_api/shared  # Mount the shared folder
     depends_on:
       - admin_db
       - frontend_db
@@ -24,10 +25,11 @@ services:
       DB_URL: postgresql://frontend:password@frontend_db:5432/frontend_db
       FRONTEND_DB_URL: postgresql://frontend:password@frontend_db:5432/frontend_db
       ADMIN_DB_URL: postgresql://admin:password@admin_db:5432/admin_db
-      PYTHONPATH: /app:/app/shared  # Add this line
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     volumes:
-      - ./frontend_api:/app
-      - ./shared:/app/shared  # Mount the shared folder
+      - ./frontend_api:/frontend_api
+      - ./shared:/frontend_api/shared  # Mount the shared folder
     depends_on:
       - frontend_db
       - admin_db

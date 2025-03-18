@@ -35,3 +35,4 @@ class User(Base):
 
     # Define a one-to-many relationship with BorrowedBook
     borrowed_books = relationship("BorrowedBook", back_populates="user")
+    

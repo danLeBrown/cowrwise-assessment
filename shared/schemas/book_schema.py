@@ -48,7 +48,11 @@ class BorrowedBookSchemaWithoutUser(BaseModel):
     returned_at: datetime
     
     book: BookSchema
-          
+
+class UpdateBookSchema(BaseModel):
+    book_id: UUID
+    status: str
+
 # Resolve the forward reference at the end of the file
 from shared.schemas.user_schema import UserSchema
 BookSchema.model_rebuild()

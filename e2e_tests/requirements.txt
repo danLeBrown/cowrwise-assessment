@@ -1,0 +1,13 @@
+# Testing dependencies
+pytest==8.3.5
+pytest-asyncio==0.25.3
+testcontainers==4.9.2
+fastapi==0.115.11
+httpx==0.28.1
+redis==5.2.1
+sqlalchemy==2.0.38
+psycopg2-binary==2.9.10
+alembic==1.15.1
+python-dotenv==1.0.
+
+# Service dependencies will be installed in editable mode (-e flag)
