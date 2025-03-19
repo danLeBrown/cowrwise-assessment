@@ -18,9 +18,9 @@ def borrow_book_listener(redis_client: RedisService, admin_db: Session, frontend
     try:
         while True:
             message = pubsub.get_message(ignore_subscribe_messages=True)
-            if message and message["type"] == "message" and message["channel"].decode("utf-8") == "book.borrowed":
+            if message and message["type"] == "message" and message["channel"] == "book.borrowed":
                 logger.info(f"Received message: {message}")
-                borrowed_book_id = message["data"].decode("utf-8")
+                borrowed_book_id = message["data"]
 
                 borrowed_book = frontend_repo.db.query(BorrowedBook).filter(BorrowedBook.id == borrowed_book_id).first()
                 

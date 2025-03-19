@@ -17,13 +17,18 @@ def create_user_listener(redis_client: RedisService, admin_db: Session, frontend
     try:
         while True:
             message = pubsub.get_message(ignore_subscribe_messages=True)
-            if message and message["type"] == "message" and message["channel"].decode("utf-8") == "user.created":
+            if message and message["type"] == "message" and message["channel"] == "user.created":
                 logger.info(f"Received message: {message}")
-                user_id = message["data"].decode("utf-8")
+                user_id = message["data"]
 
                 # Fetch the user from the frontend database and add it to the admin database            
                 user = frontend_db.query(User).filter(User.id == user_id).first()
+                check = admin_db.query(User).filter(User.id == user_id).first()
                 
+                if check:
+                    logger.info(f"User {user_id} already exists in admin database")
+                    continue
+
                 if not user:
                     logger.warning(f"User {user_id} not found in frontend database")
                     continue

@@ -57,9 +57,7 @@ class BookService:
         book = Book(title=book.title, author=book.author, publisher=book.publisher, category=book.category, slug=slug, status='available')
         book = self.book_repo.create(book)
         
-        # use json
-        res = self.redis_client.client.publish("book.created", str(book.id))
-        print(f"Published book.created event with id: {book.id}, {res}")
+        self.redis_client.client.publish("book.created", str(book.id))
 
         return book
         

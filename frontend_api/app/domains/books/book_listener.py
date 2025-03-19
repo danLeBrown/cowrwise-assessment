@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 def create_book(message: dict, admin_db: Session, frontend_repo: BookRepo):
-    book_id = message["data"].decode("utf-8")
+    book_id = message["data"]
 
     book = admin_db.query(Book).filter(Book.id == book_id).first()
 
@@ -24,7 +24,7 @@ def create_book(message: dict, admin_db: Session, frontend_repo: BookRepo):
     logger.info(f"Book {book.id} created in frontend database")
 
 def update_book(message: dict, admin_db: Session, frontend_repo: BookRepo):
-    book_id = message["data"].decode("utf-8")
+    book_id = message["data"]
 
     admin_book = admin_db.query(Book).filter(Book.id == book_id).first()
 
@@ -53,9 +53,9 @@ def book_listener(redis_client: RedisService, admin_db: Session, frontend_db: Se
     try:
         while True:
             message = pubsub.get_message(ignore_subscribe_messages=True)
-            if message and message["type"] == "message" and message["channel"].decode("utf-8") in ["book.created", "book.updated"]:
+            if message and message["type"] == "message" and message["channel"] in ["book.created", "book.updated"]:
                 logger.info(f"Received message: {message}")
-                channel = message["channel"].decode("utf-8")
+                channel = message["channel"]
 
                 if channel == "book.created":
                     create_book(message, admin_db, frontend_repo)

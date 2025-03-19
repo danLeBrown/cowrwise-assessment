@@ -1,3 +1,5 @@
+from threading import Thread
+import time
 import pytest
 import sys
 import os
@@ -80,38 +82,123 @@ def test_db_setup(admin_postgres_container, frontend_postgres_container):
     Base.metadata.drop_all(bind=admin_engine)
     Base.metadata.drop_all(bind=frontend_engine)
 
-@pytest.fixture(scope="function")
+# @pytest.fixture(scope="function", autouse=True)
+# def redis_client(redis_container):
+#     print('redis_container.get_exposed_port(6379)', redis_container.get_exposed_port(6379))
+#     client = redis.Redis(
+#         host=redis_container.get_container_host_ip(),
+#         port=redis_container.get_exposed_port(6379),
+#         decode_responses=True,
+#         db=0
+#     )
+#     yield client
+
+#     client.flushall()
+#     client.close()
+
+@pytest.fixture(scope="session")
 def redis_client(redis_container):
-    client = redis.Redis(
-        host=redis_container.get_container_host_ip(),
-        port=redis_container.get_exposed_port(6379),
-        decode_responses=True
-    )
-    yield client
-    client.flushall()
+    """Redis client fixture with session scope to maintain connection throughout tests"""
+    try:
+        client = redis.Redis(
+            host=redis_container.get_container_host_ip(),
+            port=redis_container.get_exposed_port(6379),
+            decode_responses=True,
+            db=0
+        )
+        # Test connection
+        client.ping()
+        yield client
+    except redis.ConnectionError as e:
+        pytest.fail(f"Could not connect to Redis: {e}")
+    finally:
+        try:
+            client.flushall()
+            client.close()
+        except Exception:
+            pass  # Best effort cleanup
+
+@pytest.fixture(scope="session")
+def admin_session_factory(test_db_setup):
+    """Create a session factory for admin database with session scope"""
+    return sessionmaker(autocommit=False, autoflush=False, bind=admin_engine)
+
+@pytest.fixture(scope="session")
+def frontend_session_factory(test_db_setup):
+    """Create a session factory for frontend database with session scope"""
+    return sessionmaker(autocommit=False, autoflush=False, bind=frontend_engine)
+
+@pytest.fixture(scope="session")
+def get_admin_db_session(admin_session_factory):
+    """Session-scoped admin database session for Redis listeners"""
+    db = admin_session_factory()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@pytest.fixture(scope="session")
+def get_frontend_db_session(frontend_session_factory):
+    """Session-scoped frontend database session for Redis listeners"""
+    db = frontend_session_factory()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @pytest.fixture(scope="function")
-def get_admin_db(test_db_setup):
-    db = sessionmaker(autocommit=False, autoflush=False, bind=admin_engine)()
+def get_admin_db(admin_session_factory):
+    """Function-scoped admin database session for tests"""
+    db = admin_session_factory()
     print('admin_engine', admin_engine)
     try:
         yield db
     finally:
         db.close()
 
-
 @pytest.fixture(scope="function")
-def get_frontend_db(test_db_setup):
-    db = sessionmaker(autocommit=False, autoflush=False, bind=frontend_engine)()
+def get_frontend_db(frontend_session_factory):
+    """Function-scoped frontend database session for tests"""
+    db = frontend_session_factory()
     print('frontend_engine', frontend_engine)
     try:
         yield db
     finally:
         db.close()
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def redis_service(redis_client):
-    return RedisService(redis_client)
+    """Redis service fixture with session scope to maintain connection throughout tests"""
+    service = RedisService(redis_client)
+    yield service
+
+@pytest.fixture(scope="function", autouse=True)
+def clean_databases(admin_session_factory, frontend_session_factory):
+    """Clean all tables before each test"""
+    admin_db = admin_session_factory()
+    frontend_db = frontend_session_factory()
+    try:
+        # Get all tables from the Base metadata
+        for table in reversed(Base.metadata.sorted_tables):
+            # Clean both databases
+            admin_db.execute(table.delete())
+            frontend_db.execute(table.delete())
+        
+        admin_db.commit()
+        frontend_db.commit()
+        
+        yield
+    finally:
+        # Cleanup after test
+        for table in reversed(Base.metadata.sorted_tables):
+            admin_db.execute(table.delete())
+            frontend_db.execute(table.delete())
+            
+        admin_db.commit()
+        frontend_db.commit()
+        
+        admin_db.close()
+        frontend_db.close()
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -133,6 +220,7 @@ def admin_client(get_admin_db, get_frontend_db, redis_service):
     client = TestClient(admin_app.app)
     yield client
     admin_app.app.dependency_overrides.clear()
+    client.close()
     
 @pytest.fixture(scope="function", autouse=True)
 def frontend_client(test_db_setup, get_admin_db, get_frontend_db, redis_service):
@@ -153,3 +241,96 @@ def frontend_client(test_db_setup, get_admin_db, get_frontend_db, redis_service)
     client = TestClient(frontend_app.app)
     yield client
     frontend_app.app.dependency_overrides.clear()
+    client.close()
+
+# @pytest.fixture(scope="function", autouse=True)
+# def ensure_both_servies_are_running(admin_client, frontend_client):
+#     def sleep_admin_client():
+#         admin_client.get("/health?sleep=90")
+    
+#     def sleep_frontend_client():
+#         frontend_client.get("/health?sleep=90")
+    
+#     admin_thread = Thread(target=sleep_admin_client, daemon=True)
+#     admin_thread.start()
+
+#     frontend_thread = Thread(target=sleep_frontend_client, daemon=True)
+#     frontend_thread.start()
+
+#     yield
+
+#     admin_thread.join()
+#     frontend_thread.join()
+
+# @pytest.fixture(scope="function", autouse=True)
+# def start_redis_listeners(redis_service, get_admin_db, get_frontend_db):
+#     # Start admin listeners
+#     admin_listener = Thread(
+#         target=admin_app.run_user_listener, 
+#         args=[redis_service, get_admin_db, get_frontend_db],
+#         daemon=True
+#     )
+#     admin_listener.start()
+    
+#     admin_book_listener = Thread(
+#         target=admin_app.run_book_listener, 
+#         args=[redis_service, get_admin_db, get_frontend_db],
+#         daemon=True
+#     )
+#     admin_book_listener.start()
+    
+#     # Start frontend listeners
+#     frontend_book_listener = Thread(
+#         target=frontend_app.book_listener,
+#         args=[redis_service, get_admin_db, get_frontend_db],
+#         daemon=True
+#     )
+#     frontend_book_listener.start()
+    
+#     yield
+
+@pytest.fixture(scope="session")
+def start_redis_listeners(redis_service, get_admin_db_session, get_frontend_db_session):
+    """Start Redis listeners with session scope to maintain them throughout tests"""
+    listeners = []
+    try:
+        # Admin listeners
+        admin_listener = Thread(
+            target=admin_app.run_user_listener, 
+            args=[redis_service, get_admin_db_session, get_frontend_db_session],
+            daemon=True
+        )
+        admin_listener.start()
+        listeners.append(admin_listener)
+
+        admin_book_listener = Thread(
+            target=admin_app.run_book_listener, 
+            args=[redis_service, get_admin_db_session, get_frontend_db_session],
+            daemon=True
+        )
+        admin_book_listener.start()
+        listeners.append(admin_book_listener)
+        
+        # Frontend listener
+        frontend_book_listener = Thread(
+            target=frontend_app.book_listener,
+            args=[redis_service, get_admin_db_session, get_frontend_db_session],
+            daemon=True
+        )
+        frontend_book_listener.start()
+        listeners.append(frontend_book_listener)
+        
+        # Give listeners time to initialize
+        time.sleep(1)  # Increased sleep to ensure listeners are ready
+        
+        yield
+    except Exception as e:
+        pytest.fail(f"Failed to start Redis listeners: {e}")
+    finally:
+        # Best effort cleanup of threads
+        for listener in listeners:
+            try:
+                if listener.is_alive():
+                    listener.join(timeout=0.5)  # Increased timeout for better cleanup
+            except Exception:
+                pass

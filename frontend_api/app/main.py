@@ -1,6 +1,7 @@
 from threading import Thread
 import logging
 from contextlib import asynccontextmanager
+import time
 from fastapi import FastAPI, Depends
 from threading import Thread
 from shared.core.database import get_admin_session, get_frontend_session
@@ -59,7 +60,7 @@ def get_frontend_db():
 
 
 # # Create a function to run the listener in a separate thread
-def run_book_listener(redis_client: RedisService, admin_db: Session, frontend_db: Session):
+def run_listener(redis_client: RedisService, admin_db: Session, frontend_db: Session):
     try:
         logger.info("Starting book listener thread")
         book_listener(redis_client, admin_db=admin_db, frontend_db=frontend_db)
@@ -70,7 +71,7 @@ def run_book_listener(redis_client: RedisService, admin_db: Session, frontend_db
 
 
 def get_redis():
-    return RedisService(Redis(host=os.getenv("REDIS_HOST"), port=os.getenv("REDIS_PORT"), db=0))
+    return RedisService(Redis(host=os.getenv("REDIS_HOST"), port=os.getenv("REDIS_PORT"), db=0, decode_responses=True,))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -79,7 +80,7 @@ async def lifespan(app: FastAPI):
     logger.info(f"Redis ping test: {redis_client.ping()}")
     
     # Start the book listener in a separate thread
-    listener_thread = Thread(target=run_book_listener, args=[redis_client, next(get_admin_db()), next(get_frontend_db())], daemon=True)
+    listener_thread = Thread(target=run_listener, args=[redis_client, next(get_admin_db()), next(get_frontend_db())], daemon=True)
     listener_thread.start()
     logger.info("Book listener thread started")
     
@@ -93,26 +94,31 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(debug=True, title="FrontEnd API", version="0.1.0", lifespan=lifespan)
 
+@app.get('/health')
+async def health(sleep: int = 0):
+    time.sleep(sleep)
+    return {"status": "ok"}
+
 # enroll user
 @app.post("/users", response_model=UserSchema)
-async def create_user(user: CreateUserSchema, db: Session = Depends(get_frontend_db), redis_client: Redis = Depends(get_redis)):
+async def create_user(user: CreateUserSchema, db: Session = Depends(get_frontend_db), redis_client: RedisService = Depends(get_redis)):
     user_service = UserService(redis_client, UserRepo(db))
     return user_service.create(user)
 
 # find all available books
 @app.get("/books", response_model=list[BookSchema])
-async def get_books(db: Session = Depends(get_frontend_db), publisher: Optional[str] = None, category: Optional[str] = None, redis_client: Redis = Depends(get_redis)):
+async def get_books(db: Session = Depends(get_frontend_db), publisher: Optional[str] = None, category: Optional[str] = None, redis_client: RedisService = Depends(get_redis)):
     book_service = BookService(redis_client, book_repo=BookRepo(db), borrowed_book_repo=BorrowedBookRepo(db))
     return book_service.find_all_available(query=QueryBookSchema(publisher=publisher, category=category))
 
 # get books by id
 @app.get("/books/{book_id}", response_model=BookSchema)
-async def get_book(book_id: str, db: Session = Depends(get_frontend_db), redis_client: Redis = Depends(get_redis)):
+async def get_book(book_id: str, db: Session = Depends(get_frontend_db), redis_client: RedisService = Depends(get_redis)):
     book_service = BookService(redis_client, book_repo=BookRepo(db), borrowed_book_repo=BorrowedBookRepo(db))
     return book_service.find_by_id(book_id)
 
 # Borrow a book for days
 @app.put("/books/borrow", response_model=BorrowedBookSchema)
-async def borrow_book(borrow_book: CreateBorrowedBookSchema, db: Session = Depends(get_frontend_db), redis_client: Redis = Depends(get_redis)):
+async def borrow_book(borrow_book: CreateBorrowedBookSchema, db: Session = Depends(get_frontend_db), redis_client: RedisService = Depends(get_redis)):
     book_service = BookService(redis_client, book_repo=BookRepo(db), borrowed_book_repo=BorrowedBookRepo(db))
     return book_service.borrow_book(borrow_book)
